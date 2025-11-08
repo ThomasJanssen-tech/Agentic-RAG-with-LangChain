@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carver Financial Services Chatbot Widget</title>
+</head>
+<body>
+
+<!-- CARVER FINANCIAL SERVICES CHATBOT WIDGET -->
+<!-- Copy everything between the START and END comments to embed on your website -->
+
+<!-- START CHATBOT WIDGET CODE -->
+<style>
+    /* Chatbot Widget Styles */
+    #carver-chatbot-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+    }
+
+    #carver-chatbot-button {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #003d82 0%, #0055b8 100%);
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    #carver-chatbot-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    #carver-chatbot-button svg {
+        width: 30px;
+        height: 30px;
+        fill: white;
+    }
+
+    #carver-chatbot-window {
+        display: none;
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        width: 380px;
+        height: 550px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        flex-direction: column;
+        overflow: hidden;
+        animation: slideUp 0.3s ease;
+    }
+
+    #carver-chatbot-window.open {
+        display: flex;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    #carver-chatbot-header {
+        background: linear-gradient(135deg, #003d82 0%, #0055b8 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #carver-chatbot-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    #carver-chatbot-header p {
+        margin: 5px 0 0 0;
+        font-size: 12px;
+        opacity: 0.9;
+    }
+
+    #carver-chatbot-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.2s;
+    }
+
+    #carver-chatbot-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    #carver-chatbot-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f8f9fa;
+    }
+
+    .carver-message {
+        margin-bottom: 16px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .carver-message.user {
+        flex-direction: row-reverse;
+    }
+
+    .carver-message-content {
+        max-width: 75%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        word-wrap: break-word;
+        line-height: 1.5;
+        font-size: 14px;
+    }
+
+    .carver-message.assistant .carver-message-content {
+        background: white;
+        color: #333;
+        border: 1px solid #e0e0e0;
+    }
+
+    .carver-message.user .carver-message-content {
+        background: #003d82;
+        color: white;
+    }
+
+    .carver-message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 16px;
+    }
+
+    .carver-message.assistant .carver-message-avatar {
+        background: #003d82;
+        color: white;
+    }
+
+    .carver-message.user .carver-message-avatar {
+        background: #0055b8;
+        color: white;
+    }
+
+    #carver-chatbot-input-container {
+        padding: 16px;
+        background: white;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        gap: 10px;
+    }
+
+    #carver-chatbot-input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d0d0d0;
+        border-radius: 24px;
+        outline: none;
+        font-size: 14px;
+        font-family: inherit;
+    }
+
+    #carver-chatbot-input:focus {
+        border-color: #003d82;
+    }
+
+    #carver-chatbot-send {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #003d82;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+
+    #carver-chatbot-send:hover:not(:disabled) {
+        background: #0055b8;
+    }
+
+    #carver-chatbot-send:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    #carver-chatbot-send svg {
+        width: 20px;
+        height: 20px;
+        fill: white;
+    }
+
+    .carver-typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 12px 16px;
+    }
+
+    .carver-typing-indicator span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #999;
+        animation: typing 1.4s infinite;
+    }
+
+    .carver-typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .carver-typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .carver-disclaimer {
+        font-size: 11px;
+        color: #666;
+        padding: 8px 16px;
+        background: #fff3cd;
+        border-top: 1px solid #ffd966;
+        text-align: center;
+    }
+
+    @media (max-width: 480px) {
+        #carver-chatbot-window {
+            width: calc(100vw - 40px);
+            height: calc(100vh - 120px);
+            right: 20px;
+            bottom: 90px;
+        }
+    }
+</style>
+
+<div id="carver-chatbot-container">
+    <!-- Chat Button -->
+    <button id="carver-chatbot-button" aria-label="Open chat">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+        </svg>
+    </button>
+
+    <!-- Chat Window -->
+    <div id="carver-chatbot-window">
+        <!-- Header -->
+        <div id="carver-chatbot-header">
+            <div>
+                <h3>Carver Financial Services</h3>
+                <p>How can we help you today?</p>
+            </div>
+            <button id="carver-chatbot-close" aria-label="Close chat">&times;</button>
+        </div>
+
+        <!-- Messages -->
+        <div id="carver-chatbot-messages">
+            <div class="carver-message assistant">
+                <div class="carver-message-avatar">🏦</div>
+                <div class="carver-message-content">
+                    Hello! I'm here to help you learn about Carver Financial Services. I can answer questions about our services, team, and general information. How can I assist you today?
+                </div>
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="carver-disclaimer">
+            This chatbot provides general information only and does not provide financial advice.
+        </div>
+
+        <!-- Input -->
+        <div id="carver-chatbot-input-container">
+            <input
+                type="text"
+                id="carver-chatbot-input"
+                placeholder="Type your message..."
+                aria-label="Chat message"
+            />
+            <button id="carver-chatbot-send" aria-label="Send message">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // Configuration - UPDATE THIS URL TO YOUR API ENDPOINT
+        const API_URL = 'http://localhost:8000/chat';
+
+        // DOM Elements
+        const container = document.getElementById('carver-chatbot-container');
+        const button = document.getElementById('carver-chatbot-button');
+        const window = document.getElementById('carver-chatbot-window');
+        const closeBtn = document.getElementById('carver-chatbot-close');
+        const messagesContainer = document.getElementById('carver-chatbot-messages');
+        const input = document.getElementById('carver-chatbot-input');
+        const sendBtn = document.getElementById('carver-chatbot-send');
+
+        // Chat state
+        let chatHistory = [];
+        let isOpen = false;
+        let isSending = false;
+
+        // Toggle chat window
+        function toggleChat() {
+            isOpen = !isOpen;
+            window.classList.toggle('open', isOpen);
+            if (isOpen) {
+                input.focus();
+            }
+        }
+
+        // Add message to chat
+        function addMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `carver-message ${role}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'carver-message-avatar';
+            avatar.textContent = role === 'user' ? '👤' : '🏦';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'carver-message-content';
+            contentDiv.textContent = content;
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Add to history
+            chatHistory.push({ role, content });
+        }
+
+        // Show typing indicator
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'carver-message assistant';
+            typingDiv.id = 'typing-indicator';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'carver-message-avatar';
+            avatar.textContent = '🏦';
+
+            const indicator = document.createElement('div');
+            indicator.className = 'carver-typing-indicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(indicator);
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Hide typing indicator
+        function hideTyping() {
+            const typing = document.getElementById('typing-indicator');
+            if (typing) {
+                typing.remove();
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const message = input.value.trim();
+            if (!message || isSending) return;
+
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+
+            // Disable input
+            isSending = true;
+            sendBtn.disabled = true;
+            input.disabled = true;
+
+            // Show typing indicator
+            showTyping();
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        chat_history: chatHistory.slice(-10) // Send last 10 messages
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+
+                // Hide typing and add response
+                hideTyping();
+                addMessage('assistant', data.response);
+
+            } catch (error) {
+                console.error('Error:', error);
+                hideTyping();
+                addMessage('assistant', 'I apologize, but I\'m having trouble connecting right now. Please try again later or contact us directly at the number on our website.');
+            } finally {
+                // Re-enable input
+                isSending = false;
+                sendBtn.disabled = false;
+                input.disabled = false;
+                input.focus();
+            }
+        }
+
+        // Event listeners
+        button.addEventListener('click', toggleChat);
+        closeBtn.addEventListener('click', toggleChat);
+        sendBtn.addEventListener('click', sendMessage);
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    })();
+</script>
+<!-- END CHATBOT WIDGET CODE -->
+
+</body>
+</html>
