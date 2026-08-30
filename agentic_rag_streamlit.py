@@ -6,12 +6,12 @@ from dotenv import load_dotenv
 import streamlit as st
 
 # import langchain
-from langchain.agents import AgentExecutor
+from langchain_classic.agents import AgentExecutor
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
-from langchain.agents import create_tool_calling_agent
+from langchain_classic.agents import create_tool_calling_agent
 from langchain import hub
 from langchain_core.prompts import PromptTemplate
 from langchain_community.vectorstores import SupabaseVectorStore
