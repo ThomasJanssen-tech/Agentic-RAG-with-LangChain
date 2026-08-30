@@ -1,70 +1,103 @@
 <h1>Agentic RAG (Retrieval Augmented Generation) with LangChain and Supabase</h1>
 
-<h2>Watch the full tutorial on my YouTube Channel</h2>
-<div>
+## Table of Contents
 
-<a href="https://www.youtube.com/watch?v=3ZDeqTIXBPM">
-    <img src="thumbnail.png" alt="Thomas Janssen Youtube" width="200"/>
-</a>
-</div>
+- [About](#about)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Security](#security)
+- [How to Contribute?](#how-to-contribute)
+- [What's Next?](#whats-next)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
+- [Author](#author)
 
-<h2>Prerequisites</h2>
-<ul>
-  <li>Python 3.11+</li>
-</ul>
+## About
 
-<h2>Installation</h2>
-<h3>1. Clone the repository:</h3>
+This project demonstrates an agentic Retrieval-Augmented Generation (RAG) workflow. It ingests documents into a Supabase vector store, retrieves relevant context with a LangChain tool, and uses an OpenAI chat model to answer questions. A Streamlit interface is included for interactive conversations.
 
+## Features
+
+- Loads PDF documents from the `documents/` directory.
+- Splits documents into overlapping chunks and stores embeddings in Supabase with pgvector.
+- Retrieves the most relevant document chunks through an agent tool.
+- Supports command-line and Streamlit chat experiences.
+- Uses OpenAI's `text-embedding-3-small` embedding model.
+
+## Tech Stack
+
+- Python 3.11+
+- LangChain and LangChain Classic
+- OpenAI API
+- Supabase with PostgreSQL and pgvector
+- Streamlit
+
+## Architecture
+
+```text
+PDF documents
+    |
+    v
+ingest_in_db.py -> OpenAI embeddings -> Supabase pgvector
+                                         |
+User question -> LangChain agent -> retrieve tool -> relevant chunks
+                                         |
+                                         v
+                                  OpenAI chat model -> response
 ```
+
+## Project Structure
+
+```text
+.
+├── agentic_rag.py             # Command-line agent example
+├── agentic_rag_streamlit.py   # Streamlit chat application
+├── ingest_in_db.py            # Document ingestion and vector storage
+├── documents/                 # Source PDFs to ingest
+├── requirements.txt           # Python dependencies
+└── LICENSE
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.11 or later
+- A Supabase project
+- An OpenAI API key
+
+### Installation
+
+```powershell
 git clone https://github.com/ThomasJanssen-tech/Agentic-RAG-with-LangChain.git
-cd Agentic RAG with LangChain
-```
-
-<h3>2. Create a virtual environment</h3>
-
-```
+cd Agentic-RAG-with-LangChain
 python -m venv venv
-```
-
-<h3>3. Activate the virtual environment</h3>
-
-```
-venv\Scripts\Activate
-(or on Mac): source venv/bin/activate
-```
-
-<h3>4. Install libraries</h3>
-
-```
+.\venv\Scripts\Activate
 pip install -r requirements.txt
 ```
 
-<h3>5. Create accounts</h3>
+On macOS or Linux, activate the virtual environment with `source venv/bin/activate`.
 
-- Create a free account on Supabase: https://supabase.com/
-- Create an API key for OpenAI: https://platform.openai.com/api-keys
+### Prepare Supabase
 
-<h3>6. Execute SQL queries in Supabase</h3>
+Run the following SQL in the Supabase SQL Editor:
 
-Execute the following SQL query in Supabase:
-
-```
--- Enable the pgvector extension to work with embedding vectors
+```sql
 create extension if not exists vector;
 
--- Create a table to store your documents
-create table
-  documents (
-    id uuid primary key,
-    content text, -- corresponds to Document.pageContent
-    metadata jsonb, -- corresponds to Document.metadata
-    embedding vector (1536) -- 1536 works for OpenAI embeddings, change if needed
-  );
+create table documents (
+  id uuid primary key,
+  content text,
+  metadata jsonb,
+  embedding vector(1536)
+);
 
--- Create a function to search for documents
 create function match_documents (
-  query_embedding vector (1536),
+  query_embedding vector(1536),
   filter jsonb default '{}'
 ) returns table (
   id uuid,
@@ -87,32 +120,60 @@ end;
 $$;
 ```
 
-<h3>7. Add API keys to .env file</h3>
+### Run the Project
 
-- Rename .env.example to .env
-- Add the API keys for Supabase and OpenAI to the .env file
+Add PDF files to `documents/`, then ingest them and start one of the applications:
 
-<h2>Executing the scripts</h2>
-
-- Open a terminal in VS Code
-
-- Execute the following command:
-
-```
+```powershell
 python ingest_in_db.py
 python agentic_rag.py
 streamlit run agentic_rag_streamlit.py
 ```
 
-<h2>Sources</h2>
+## Configuration
 
-While making this video, I used the following sources:
+Create a `.env` file in the repository root:
 
-<ul>
-<li>https://python.langchain.com/docs/integrations/vectorstores/supabase/</li>
-<li>https://python.langchain.com/docs/integrations/text_embedding/openai/</li>
-<li>https://platform.openai.com/docs/guides/embeddings</li>
-<li>https://www.kaggle.com/code/youssef19/documents-splitting-with-langchain</li>
-<li>https://openai.com/index/new-embedding-models-and-api-updates/</li>
-<li>https://zilliz.com/ai-models/text-embedding-3-small</li>
-</ul>
+```env
+OPENAI_API_KEY=your_openai_api_key
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_KEY=your_supabase_service_key
+```
+
+The application uses the `documents` table and the `match_documents` search function by default.
+
+## Security
+
+- Never commit `.env` files, API keys, or Supabase service keys.
+- Keep `SUPABASE_SERVICE_KEY` server-side; it has elevated database permissions.
+- Use a restricted Supabase key and Row Level Security where the deployment requires user-level access.
+- Rotate credentials immediately if they are exposed.
+
+## How to Contribute?
+
+1. Fork the repository and create a feature branch.
+2. Make a focused change and verify it locally.
+3. Update documentation when behavior or configuration changes.
+4. Open a pull request describing the change and validation performed.
+
+## What's Next?
+
+- Add automated tests for ingestion and retrieval.
+- Add support for additional document formats.
+- Add source citations to generated answers.
+- Add authentication and deployment configuration for a hosted Streamlit application.
+
+## License
+
+Distributed under the terms in [LICENSE](LICENSE).
+
+## Acknowledgements
+
+- [LangChain Supabase vector store integration](https://python.langchain.com/docs/integrations/vectorstores/supabase/)
+- [LangChain OpenAI embeddings integration](https://python.langchain.com/docs/integrations/text_embedding/openai/)
+- [OpenAI embeddings documentation](https://platform.openai.com/docs/guides/embeddings)
+- [OpenAI embedding model announcement](https://openai.com/index/new-embedding-models-and-api-updates/)
+
+## Author
+
+Thomas Janssen
